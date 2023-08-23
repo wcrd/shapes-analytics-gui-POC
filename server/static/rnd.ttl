@@ -1,0 +1,20 @@
+@prefix rnd: <http://switch.com/rnd#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+rnd:hasFullEntityLabel a owl:AsymetricProperty, 
+        owl:IrreflexiveProperty,
+        owl:ObjectProperty .
+
+rnd:hasRootParent a owl:AsymetricProperty, 
+        owl:IrreflexiveProperty,
+        owl:ObjectProperty ;
+    owl:inverseOf rnd:isRootParentOf .
+
+rnd:isRootParentOf a owl:AsymetricProperty, 
+        owl:IrreflexiveProperty,
+        owl:ObjectProperty; 
+    owl:inverseOf rnd:hasRootParent .
+
+rnd:entityPath a owl:AsymetricProperty,
+        owl:IrreflexiveProperty,
+        owl:ObjectProperty; .
