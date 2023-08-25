@@ -1,13 +1,20 @@
 from flask import Flask, request, jsonify
 import rdflib
+import json
 
-from helpers import msg, MsgType, data
+from helpers import msg, MsgType, data, MatchJSONEncoder
+import lib.modules as LogicModules
 
 # Going to run simple server from a class so I can store state in memory across requests
 class Server():
 
     def __init__(self):
         self.app = Flask(__name__, static_url_path="/static")
+        self.db = {
+            'modules': { str(getattr(LogicModules, m).MODULE.uuid): getattr(LogicModules, m).MODULE for m in LogicModules.__all__ },
+            'matches': {}
+        }
+        
         
         print("Loading graph frame with Brick and Switch ontologies.")
         (self.ds, self.g_ns) = self.init_graph_model() 
@@ -17,6 +24,8 @@ class Server():
         self.app.route("/hello-world", methods=['GET'])(self.hello_world)
         self.app.route("/graph-size", methods=['GET'])(self.graph_size)
         self.app.route("/upload-model", methods=['POST'])(self.upload_model)
+        self.app.route("/get-modules", methods=['GET'])(self.get_modules)
+        self.app.route("/get-module-matches", methods=['POST'])(self.get_module_matches)
     
     #   FLASK STUFF
     #
@@ -58,6 +67,43 @@ class Server():
     def graph_size(self):
         return data(len(self.ds))
     
+    def get_modules(self):
+        return_data = []
+        for mod in self.db['modules'].values():
+            return_data.append({
+                'uuid': mod.uuid,
+                'name': mod.name,
+                'type': mod.cType.name,
+                'options': [{'type': opt.cType.name, 'uuid': opt.uuid, 'name': opt.name, 'desc': opt.description} for opt in mod.logic_modules]
+            })
+        
+        return data(return_data)
+    
+    def get_module_matches(self):
+
+        # Get required values from request body
+        jsonData = request.get_json()
+        module_uuid = jsonData.get('module_uuid')
+        force_rematch = jsonData.get('force_rematch')
+
+        if not module_uuid: return msg(MsgType.ERROR, "No module_id provided")
+
+        # Run the matching process
+        # Check module exists
+        if not (m:=self.db['modules'].get(module_uuid)):
+            return msg(MsgType.ERROR, "No module exists for that uuid", uuid=module_uuid)
+
+        if not force_rematch:
+            # check if we already have matches!
+            matches = self.db['matches'].get(module_uuid)
+            if matches: 
+                return data( matches, meta={"from_cache": True})
+        
+        (raw_match, df_match) = m.match(self.ds)
+        self.db['matches'][module_uuid] = json.loads(json.dumps(df_match.to_dict(orient='records'), cls=MatchJSONEncoder))
+
+
+        return data( self.db['matches'][module_uuid] , meta={"from_cache": False} )
 
     #   NON ROUTE METHODS
     #
@@ -67,7 +113,7 @@ class Server():
         switch_path = "./server/static/Brick-SwitchExtension.ttl"
         rnd_path = "./server/static/rnd.ttl"
 
-        ds = rdflib.Dataset(default_union=True)
+        ds = rdflib.Dataset(default_union=True, store="Oxigraph")
         g_ns = rdflib.Namespace("https://_graph_.com#")
 
         # Load brick
@@ -80,6 +126,8 @@ class Server():
         return (ds, g_ns)
 
     def parse_model_file(self, modelfile):
+        # dump old model
+        self.ds.remove_graph(self.g_ns['building'])
         # load building model
         self.ds.add_graph(self.g_ns['building']).parse(file=modelfile, format="turtle")
 
