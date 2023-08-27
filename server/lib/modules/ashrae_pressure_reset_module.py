@@ -451,6 +451,7 @@ class MODULE_ASHRAE_Pressure_Trim_and_Respond(object):
                 df_option['_logic'] = logic_option.uuid
                 df_option['_logic_name'] = logic_option.__name__
                 df_option['_match_id'] = [uuid.uuid4() for _ in range(len(df_option.index))]
+                
             if(return_type=="CONSTRUCT"):
                 # add the module relationship and entity
                 res_option.graph.add((rdflib.URIRef(f"http://switch.com/rnd#{self.name}"), rdflib.RDF.type, rdflib.URIRef("http://switch.com/rnd#logicModule")))

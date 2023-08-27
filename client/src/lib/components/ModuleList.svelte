@@ -18,7 +18,7 @@
     }
 </script>
 
-<div class="flex flex-col w-100 overflow-x-hidden gap-y-2 m-2 overflow-y-scroll h-100">
+<div class="flex flex-col w-100 overflow-x-hidden gap-y-4 m-2 overflow-y-scroll h-100">
     {#each modules as module}
         <ModuleCard {module} on:moduleClick={handleClick} />
     {/each}

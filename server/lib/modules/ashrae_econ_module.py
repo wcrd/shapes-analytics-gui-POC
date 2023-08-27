@@ -93,7 +93,7 @@ class ASHRAE_Econ_HL_Shutoff_Diff_Enthalpy(object):
     
     _sparql_return = {
         "SELECT": """
-            SELECT ("{name}" as ?option) ?match_id (?this as ?entity) ?label ?m_b1_mode ?m_b1 ?m_b2 ?m_b3_mode ?m_b3_1 ?m_b3_2_1 ?m_b3_2_2 ?m_ob_1
+            SELECT ("{name}" as ?option) ?match_id (?this as ?target) ?label ?m_b1_mode ?m_b1 ?m_b2 ?m_b3_mode ?m_b3_1 ?m_b3_2_1 ?m_b3_2_2 ?m_ob_1
             """,
         "CONSTRUCT": f"""
             CONSTRUCT {{
@@ -121,7 +121,7 @@ class ASHRAE_Econ_HL_Shutoff_Diff_Enthalpy(object):
     def find_matches(self, dataset:rdflib.Graph, return_type="SELECT") -> Tuple[rdflib.query.Result, pd.DataFrame]:
         _query = self._sparql_return[return_type] + self.sparql_query
         res = dataset.query(_query)
-        res_df = pd.DataFrame(res, columns=res.vars)
+        res_df = pd.DataFrame(res, columns=[v.toPython() for v in res.vars])
         return (res, res_df)
     
     @classmethod
@@ -268,7 +268,7 @@ class ASHRAE_Econ_HL_Shutoff_Fixed_DB(object):
 
     _sparql_return = {
         "SELECT": """
-            SELECT ("{name}" as ?option) ?match_id (?this as ?entity) ?label ?m_b1_mode ?m_b1 ?m_b2 ?m_b3 ?m_ob_1
+            SELECT ("{name}" as ?option) ?match_id (?this as ?target) ?label ?m_b1_mode ?m_b1 ?m_b2 ?m_b3 ?m_ob_1
         """,
         "CONSTRUCT": f"""
             CONSTRUCT {{
@@ -296,7 +296,7 @@ class ASHRAE_Econ_HL_Shutoff_Fixed_DB(object):
     def find_matches(self, dataset:rdflib.Graph, return_type="SELECT") -> Tuple[rdflib.query.Result, pd.DataFrame]:
         _query = self._sparql_return[return_type] + self.sparql_query
         res = dataset.query(_query)
-        res_df = pd.DataFrame(res, columns=res.vars)
+        res_df = pd.DataFrame(res, columns=[v.toPython() for v in res.vars])
         return (res, res_df)
     
     @classmethod
@@ -398,7 +398,7 @@ class ASHRAE_Econ_HL_Shutoff_Diff_DB(object):
 
     _sparql_return = {
         "SELECT": """
-            SELECT ("{name}" as ?option) ?match_id (?this as ?entity) ?label ?m_b1_mode ?m_b1 ?m_b2 ?m_b3 ?m_b4            
+            SELECT ("{name}" as ?option) ?match_id (?this as ?target) ?label ?m_b1_mode ?m_b1 ?m_b2 ?m_b3 ?m_b4            
             """,
         "CONSTRUCT": f"""
             CONSTRUCT {{
@@ -429,7 +429,7 @@ class ASHRAE_Econ_HL_Shutoff_Diff_DB(object):
         # Query match
         _query = self._sparql_return[return_type] + self.sparql_query
         res = dataset.query(_query)
-        res_df = pd.DataFrame(res, columns=res.vars)
+        res_df = pd.DataFrame(res, columns=[v.toPython() for v in res.vars])
         
         return (res, res_df)
     
@@ -538,7 +538,7 @@ class ASHRAE_Econ_HL_Shutoff_Fixed_Enthalpy(object):
 
     _sparql_return = {
         "SELECT": f"""
-            SELECT ("{name}" as ?option) ?match_id (?this as ?entity) ?label ?m_b1_mode ?m_b1 ?m_b2 ?m_b3 ?m_b4 ?m_ob_1            
+            SELECT ("{name}" as ?option) ?match_id (?this as ?target) ?label ?m_b1_mode ?m_b1 ?m_b2 ?m_b3 ?m_b4 ?m_ob_1            
             """,
         "CONSTRUCT": f"""
             CONSTRUCT {{
@@ -567,7 +567,7 @@ class ASHRAE_Econ_HL_Shutoff_Fixed_Enthalpy(object):
         # Query match
         _query = self._sparql_return[return_type] + self.sparql_query
         res = dataset.query(_query)
-        res_df = pd.DataFrame(res, columns=res.vars)
+        res_df = pd.DataFrame(res, columns=[v.toPython() for v in res.vars])
         
         return (res, res_df)
     
@@ -626,10 +626,6 @@ class MODULE_Air_Economizer_High_Limit_Shutoff_Exceeding_ASHRAE_Standards(object
                 df_option['_logic_name'] = logic_option.__name__
                 df_option['_match_id'] = [uuid.uuid4() for _ in range(len(df_option.index))]
 
-                # rename
-                df_option.rename({'entity': 'target'})
-
-                df_option.fillna(0, inplace=True)
             if(return_type=="CONSTRUCT"):
                 # add the module relationship and entity
                 res_option.graph.add((rdflib.URIRef(f"http://switch.com/rnd#{self.name}"), rdflib.RDF.type, rdflib.URIRef("http://switch.com/rnd#logicModule")))
@@ -641,7 +637,7 @@ class MODULE_Air_Economizer_High_Limit_Shutoff_Exceeding_ASHRAE_Standards(object
             # add to outputs
             res_output[logic_option.__name__] = res_option
             df_output = pd.concat([df_output, df_option], ignore_index=True)
-            df_output.fillna(0, inplace=True) # donig this again b/c not working?
+            df_output.fillna(0, inplace=True) # some NaNs are being returned; need to address this earlier.
         
         return (res_output, df_output)
     

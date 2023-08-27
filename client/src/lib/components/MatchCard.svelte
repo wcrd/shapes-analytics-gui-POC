@@ -11,6 +11,6 @@
 
 </script>
 
-<div class="p-1 border-2 border-solid rounded-lg border-blue-400 hover:bg-blue-200 cursor-pointer" on:click={handleClick} >
+<div class="p-1 border-2 border-solid rounded-lg border-blue-400 hover:bg-blue-200 cursor-pointer bg-white" on:click={handleClick} >
     <h6 class="font-semibold text-sm">{match['?target']}</h6>
 </div>

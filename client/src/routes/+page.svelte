@@ -60,21 +60,19 @@
 
 </script>
 
-<div class="h-screen w-screen bg-slate-100 overflow-hidden">
-    <!-- Header -->
-    <!-- 3 column setup -->
+<div class="flex flex-col h-full w-screen bg-slate-100">
     <div class="flex flex-col h-full">
         <header class="h-8 border-solid border-b border-slate-400">
             Header Bar
         </header>
         <div class="flex flex-row h-full">
-            <div class="flex w-1/6 overflow-x-hidden h-full">
+            <div class="flex w-1/6 h-full">
                 <ModuleList modules={$state.modules} on:click={e => console.debug("Received")} />
             </div>
-            <div class="flex w-1/6 overflow-x-hidden h-full">
+            <div class="flex w-1/6 h-full">
                 <MatchList {matches} />
             </div>
-            <div class="flex w-2/3 h-full">
+            <div class="flex w-2/3 h-full overflow-hidden">
                 <!-- <TidyTree data={diagram} /> -->
                 <GraphContainer data={diagram} />
 
