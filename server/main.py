@@ -4,6 +4,7 @@ import json
 
 from helpers import msg, MsgType, data, MatchJSONEncoder
 import lib.modules as LogicModules
+from lib.diagram_generator import generate_tidy_tree
 
 # Going to run simple server from a class so I can store state in memory across requests
 class Server():
@@ -12,7 +13,8 @@ class Server():
         self.app = Flask(__name__, static_url_path="/static")
         self.db = {
             'modules': { str(getattr(LogicModules, m).MODULE.uuid): getattr(LogicModules, m).MODULE for m in LogicModules.__all__ },
-            'matches': {}
+            'matches': {},
+            'diagrams': {}, # { module_uuid: { logic_uuid: { match_uuid: diagram_data } } } 
         }
         
         
@@ -26,6 +28,7 @@ class Server():
         self.app.route("/upload-model", methods=['POST'])(self.upload_model)
         self.app.route("/get-modules", methods=['GET'])(self.get_modules)
         self.app.route("/get-module-matches", methods=['POST'])(self.get_module_matches)
+        self.app.route("/get-match-diagram", methods=['POST'])(self.get_match_diagram)
     
     #   FLASK STUFF
     #
@@ -104,6 +107,34 @@ class Server():
 
 
         return data( self.db['matches'][module_uuid] , meta={"from_cache": False} )
+
+    def get_match_diagram(self):
+        # Get required values from request body
+        jsonData = request.get_json()
+        match = jsonData['match']
+        force_regen = jsonData.get('force_regen')
+
+        # Get logic module and run the diagram method
+        # Check module exists
+        if not (m:=self.db['modules'].get(match['_module'])):
+            return msg(MsgType.ERROR, "No module exists for that uuid", uuid=match['_module'])
+        
+        if not force_regen:
+            # check if we already have diagram!
+            matches = self.db['diagrams'].get(match['_module'], {}).get(match['_logic'], {}).get(match['_match_id'])
+            if matches: 
+                return data( matches, meta={"from_cache": True})
+        
+        # get diagram graph
+        diagram_g = m.get_match_diagram_graph(self.ds, match)
+
+        # generate match diagram data
+        diagram_data = generate_tidy_tree(diagram_g.graph, match)
+
+        # save to db
+        self.db['diagrams'].setdefault(match['_module'], {}).setdefault(match['_logic'], {})[match['_match_id']] = diagram_data
+
+        return data( diagram_data )
 
     #   NON ROUTE METHODS
     #

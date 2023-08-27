@@ -60,65 +60,122 @@ class ASHRAE_Pressure_Trim_and_Respond(object):
         "CONSTRUCT": None
     }
 
-    def _diagram_query(target):
-        return f"""
-            CONSTRUCT {{
-                ?target rdf:type ?t_type ;
-                    brick:hasPoint ?p1, ?p2 .
+    # def _diagram_query(target):
+    #     return f"""
+    #         CONSTRUCT {{
+    #             ?target rdf:type ?t_type ;
+    #                 brick:hasPoint ?p1, ?p2 .
                 
-                ?p1 rdf:type brick:Discharge_Air_Static_Pressure_Sensor ;
-                    brick:isPointOf ?target .
-                ?p2 rdf:type brick:Discharge_Air_Static_Pressure_Setpoint ;
-                    brick:isPointOf ?target .
+    #             ?p1 rdf:type brick:Discharge_Air_Static_Pressure_Sensor ;
+    #                 brick:isPointOf ?target .
+    #             ?p2 rdf:type brick:Discharge_Air_Static_Pressure_Setpoint ;
+    #                 brick:isPointOf ?target .
 
-                ?downstream_1 brick:feeds ?downstream_2 ;
-                    rdf:type ?d1_type ;
-                    rdfs:label ?d2_label .
+    #             ?downstream_1 brick:feeds ?downstream_2 ;
+    #                 rdf:type ?d1_type ;
+    #                 rdfs:label ?d2_label .
 
-                ?downstream_2 rdf:type ?d2_type ;
-                    rdfs:label ?d2_label .
+    #             ?downstream_2 rdf:type ?d2_type ;
+    #                 rdfs:label ?d2_label .
                 
-                # TU definition is covered off by downstream_2; just need to add additional parts
-                ?tu brick:hasPart ?damper .
-                ?damper rdf:type switch:Discharge_Damper ;
-                    rdfs:label ?d_label ;
-                    brick:hasPoint ?tu_damperPos ;
-                    brick:isPartOf ?tu .
-                ?tu_damperPos rdf:type ?damperPosType ;
-                    brick:isPointOf ?damper .
-            }}
-             WHERE {{
+    #             # TU definition is covered off by downstream_2; just need to add additional parts
+    #             ?tu brick:hasPart ?damper .
+    #             ?damper rdf:type switch:Discharge_Damper ;
+    #                 rdfs:label ?d_label ;
+    #                 brick:hasPoint ?tu_damperPos ;
+    #                 brick:isPartOf ?tu .
+    #             ?tu_damperPos rdf:type ?damperPosType ;
+    #                 brick:isPointOf ?damper .
+    #         }}
+    #          WHERE {{
                 
-                ?target brick:hasPoint ?p1 .
-                ?target brick:hasPoint ?p2 .
-                ?p1 rdf:type brick:Discharge_Air_Static_Pressure_Sensor .
-                ?p2 rdf:type brick:Discharge_Air_Static_Pressure_Setpoint .
+    #             ?target brick:hasPoint ?p1 .
+    #             ?target brick:hasPoint ?p2 .
+    #             ?p1 rdf:type brick:Discharge_Air_Static_Pressure_Sensor .
+    #             ?p2 rdf:type brick:Discharge_Air_Static_Pressure_Setpoint .
 
-                # PATH RESOLVER
-                ?target brick:feeds* ?downstream_1 .
-                ?downstream_1 brick:feeds ?downstream_2 .
-                ?downstream_2 brick:feeds* ?tu .
-                ?tu rdf:type/rdfs:subClassOf* brick:Terminal_Unit .
+    #             # PATH RESOLVER
+    #             ?target brick:feeds* ?downstream_1 .
+    #             ?downstream_1 brick:feeds ?downstream_2 .
+    #             ?downstream_2 brick:feeds* ?tu .
+    #             ?tu rdf:type/rdfs:subClassOf* brick:Terminal_Unit .
                 
-                # PATH TERMINATION CONDITIONS
-                ?tu brick:hasPart ?damper .
-                ?damper rdf:type switch:Discharge_Damper .
-                ?damper brick:hasPoint ?tu_damperPos .
-                ?tu_damperPos rdf:type ?damperPosType .
-                VALUES ?damperPosType {{ brick:Position_Sensor brick:Position_Command }}
+    #             # PATH TERMINATION CONDITIONS
+    #             ?tu brick:hasPart ?damper .
+    #             ?damper rdf:type switch:Discharge_Damper .
+    #             ?damper brick:hasPoint ?tu_damperPos .
+    #             ?tu_damperPos rdf:type ?damperPosType .
+    #             VALUES ?damperPosType {{ brick:Position_Sensor brick:Position_Command }}
                 
-                # get metadata to fill out model
-                ?target rdf:type ?t_type .
-                OPTIONAL {{ ?target rdfs:label ?t_label }} .
-                ?downstream_1 rdf:type ?d1_type .
-                OPTIONAL {{ ?downstream_1 rdfs:label ?d1_label }} .
-                ?downstream_2 rdf:type ?d2_type .
-                OPTIONAL {{ ?downstream_2 rdfs:label ?d2_label }} .
-                OPTIONAL {{ ?damper rdfs:label ?d_label }} .
+    #             # get metadata to fill out model
+    #             ?target rdf:type ?t_type .
+    #             OPTIONAL {{ ?target rdfs:label ?t_label }} .
+    #             ?downstream_1 rdf:type ?d1_type .
+    #             OPTIONAL {{ ?downstream_1 rdfs:label ?d1_label }} .
+    #             ?downstream_2 rdf:type ?d2_type .
+    #             OPTIONAL {{ ?downstream_2 rdfs:label ?d2_label }} .
+    #             OPTIONAL {{ ?damper rdfs:label ?d_label }} .
   
-                VALUES ?target {{{ target }}}
-        }}
-    """
+    #             # VALUES ?target {{{ target }}}
+    #     }}
+    # """
+
+    diagram_query =  """
+        CONSTRUCT {
+            ?target rdf:type ?t_type ;
+                brick:hasPoint ?p1, ?p2 .
+            
+            ?p1 rdf:type brick:Discharge_Air_Static_Pressure_Sensor ;
+                brick:isPointOf ?target .
+            ?p2 rdf:type brick:Discharge_Air_Static_Pressure_Setpoint ;
+                brick:isPointOf ?target .
+
+            ?downstream_1 brick:feeds ?downstream_2 ;
+                rdf:type ?d1_type ;
+                rdfs:label ?d2_label .
+
+            ?downstream_2 rdf:type ?d2_type ;
+                rdfs:label ?d2_label .
+            
+            # TU definition is covered off by downstream_2; just need to add additional parts
+            ?tu brick:hasPart ?damper .
+            ?damper rdf:type switch:Discharge_Damper ;
+                rdfs:label ?d_label ;
+                brick:hasPoint ?tu_damperPos ;
+                brick:isPartOf ?tu .
+            ?tu_damperPos rdf:type ?damperPosType ;
+                brick:isPointOf ?damper .
+        }
+        WHERE {
+            
+            ?target brick:hasPoint ?p1 .
+            ?target brick:hasPoint ?p2 .
+            ?p1 rdf:type brick:Discharge_Air_Static_Pressure_Sensor .
+            ?p2 rdf:type brick:Discharge_Air_Static_Pressure_Setpoint .
+
+            # PATH RESOLVER
+            ?target brick:feeds* ?downstream_1 .
+            ?downstream_1 brick:feeds ?downstream_2 .
+            ?downstream_2 brick:feeds* ?tu .
+            ?tu rdf:type/rdfs:subClassOf* brick:Terminal_Unit .
+            
+            # PATH TERMINATION CONDITIONS
+            ?tu brick:hasPart ?damper .
+            ?damper rdf:type switch:Discharge_Damper .
+            ?damper brick:hasPoint ?tu_damperPos .
+            ?tu_damperPos rdf:type ?damperPosType .
+            VALUES ?damperPosType { brick:Position_Sensor brick:Position_Command }
+            
+            # get metadata to fill out model
+            ?target rdf:type ?t_type .
+            OPTIONAL { ?target rdfs:label ?t_label } .
+            ?downstream_1 rdf:type ?d1_type .
+            OPTIONAL { ?downstream_1 rdfs:label ?d1_label } .
+            ?downstream_2 rdf:type ?d2_type .
+            OPTIONAL { ?downstream_2 rdfs:label ?d2_label } .
+            OPTIONAL { ?damper rdfs:label ?d_label } .
+
+        }"""
 
     params = """
         m_b1: Discharge Air Pressure Sensor
@@ -374,6 +431,7 @@ class MODULE_ASHRAE_Pressure_Trim_and_Respond(object):
     name = "MODULE_Pressure_Trim_and_Respond_per_ASHRAE_G36"
 
     # Ranked tuple of logic options for this module
+    # TODO: change this to dict comprehension; key=uuid, rank as field.
     logic_modules = (
         ASHRAE_Pressure_Trim_and_Respond,
     )
@@ -392,6 +450,7 @@ class MODULE_ASHRAE_Pressure_Trim_and_Respond(object):
                 df_option['_module'] = self.uuid or None
                 df_option['_logic'] = logic_option.uuid
                 df_option['_logic_name'] = logic_option.__name__
+                df_option['_match_id'] = uuid.uuid4()
             if(return_type=="CONSTRUCT"):
                 # add the module relationship and entity
                 res_option.graph.add((rdflib.URIRef(f"http://switch.com/rnd#{self.name}"), rdflib.RDF.type, rdflib.URIRef("http://switch.com/rnd#logicModule")))
@@ -407,14 +466,18 @@ class MODULE_ASHRAE_Pressure_Trim_and_Respond(object):
         return (res_output, df_output)
     
     @classmethod
-    def get_match_diagram(self, dataset:rdflib.Graph, match_record):
+    def get_match_diagram_graph(self, dataset:rdflib.Graph, match_record):
         """
-        match_record = { ... , _logic: str(uuid), _module: str(uuid) }
+        match_record = { ... , ?target: str(URIRef), _match_id: str(uuid), _logic: str(uuid), _module: str(uuid) }
         """
 
-        # lookup logic option
+        # lookup logic option (should only be 1, hence we take first element of list)
+        logic_option = next( iter(filter(lambda x: str(x.uuid) == match_record['_logic'], self.logic_modules)), None)
         # run diagram graph creator
+        diagram_g = dataset.query(logic_option.diagram_query, initBindings={'target': rdflib.URIRef(match_record['?target'])})
         # process graph in 
+
+        return diagram_g
 
     
 
