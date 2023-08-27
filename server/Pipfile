@@ -8,6 +8,7 @@ rdflib = "*"
 flask = "*"
 pandas = "*"
 oxrdflib = "*"
+flask-cors = "*"
 
 [dev-packages]
 ipykernel = "*"

@@ -1,6 +1,7 @@
 from enum import Enum
 import json
 from uuid import UUID
+import math
 
 MsgType = Enum("MsgType", ['ERROR', 'SUCCESS'])
 
@@ -25,4 +26,6 @@ class MatchJSONEncoder(json.JSONEncoder):
             return list(obj)
         elif isinstance(obj, UUID):
             return str(obj)
+        elif math.isnan(obj):
+            return ""
         return json.JSONEncoder.default(self, obj)

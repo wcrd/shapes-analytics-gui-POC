@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import rdflib
 import json
 
@@ -11,6 +12,7 @@ class Server():
 
     def __init__(self):
         self.app = Flask(__name__, static_url_path="/static")
+        CORS(self.app)
         self.db = {
             'modules': { str(getattr(LogicModules, m).MODULE.uuid): getattr(LogicModules, m).MODULE for m in LogicModules.__all__ },
             'matches': {},

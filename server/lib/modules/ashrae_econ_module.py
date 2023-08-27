@@ -624,6 +624,12 @@ class MODULE_Air_Economizer_High_Limit_Shutoff_Exceeding_ASHRAE_Standards(object
                 df_option['_module'] = self.uuid or None
                 df_option['_logic'] = logic_option.uuid
                 df_option['_logic_name'] = logic_option.__name__
+                df_option['_match_id'] = [uuid.uuid4() for _ in range(len(df_option.index))]
+
+                # rename
+                df_option.rename({'entity': 'target'})
+
+                df_option.fillna(0, inplace=True)
             if(return_type=="CONSTRUCT"):
                 # add the module relationship and entity
                 res_option.graph.add((rdflib.URIRef(f"http://switch.com/rnd#{self.name}"), rdflib.RDF.type, rdflib.URIRef("http://switch.com/rnd#logicModule")))
@@ -635,6 +641,7 @@ class MODULE_Air_Economizer_High_Limit_Shutoff_Exceeding_ASHRAE_Standards(object
             # add to outputs
             res_output[logic_option.__name__] = res_option
             df_output = pd.concat([df_output, df_option], ignore_index=True)
+            df_output.fillna(0, inplace=True) # donig this again b/c not working?
         
         return (res_output, df_output)
     
