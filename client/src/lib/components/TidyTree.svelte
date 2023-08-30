@@ -120,7 +120,7 @@
 	};
 </script>
 
-<div class="border rounded-md my-1 py-5 flex flex-col items-center h-full">
+<div class="border rounded-md my-1 py-5 flex flex-col items-center h-full w-full">
     <div bind:this={el} id="el"></div>
 
     <div id="legend" class="flex flex-row gap-x-5 mt-5">

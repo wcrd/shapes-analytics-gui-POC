@@ -5,6 +5,6 @@
 
 </script>
 
-<div class="h-full w-full overflow-scroll">
+<div class="h-full w-full overflow-scroll w-full">
     <TidyTree {data} />
 </div>
