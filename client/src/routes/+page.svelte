@@ -74,7 +74,7 @@
             </div>
             <div class="flex w-2/3 h-full overflow-hidden">
                 <!-- <TidyTree data={diagram} /> -->
-                <GraphContainer data={diagram} />
+                <GraphContainer bind:data={diagram} />
 
             </div>
         </div>
