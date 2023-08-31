@@ -1,10 +1,12 @@
 <script>
-    import TidyTree from '$lib/components/TidyTree.svelte';
+    import SvelteTidyTree from '$lib/components/SvelteTidyTree.svelte';
 
-    export let data
+    export let data = {};
+
+    // $: console.debug("GraphContainer got new data: ", data)
 
 </script>
 
-<div class="h-full w-full overflow-scroll w-full">
-    <TidyTree {data} />
+<div class="flex flex-col h-full w-full overflow-scroll">
+    <SvelteTidyTree {data} />
 </div>
