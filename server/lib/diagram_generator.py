@@ -22,15 +22,30 @@ def get_children(g:rdflib.Graph, forEnt:rdflib.URIRef):
     
         for ent in children_ent:
             classType = 'point' if pred=='hasPoint' else 'entity'
-            children.append({ 'uri': ent, 'name': splitURI(ent)[1], 'type': classType, 'rel': pred, 'children': get_children(g, ent)})
+            # get metadata for display
+            e_label = next(g.objects(ent, rdflib.RDFS.label), '') 
+            e_cls = next(g.objects(ent, rdflib.RDF.type), '')
+
+            children.append({ 
+                'uri': ent, 
+                'name': splitURI(ent)[1], 
+                'display': {'label': e_label, 'cls': dict(zip(['ont', 'slug'], splitURI(e_cls)))},
+                'type': classType, 
+                'rel': pred, 
+                'children': get_children(g, ent)})
     
     
     return children
 
 def generate_tidy_tree(g:rdflib.Graph, match):
     target = rdflib.URIRef(match['?target'])
+    # additional metadata for display
+    t_label = next(g.objects(target, rdflib.RDFS.label), '') 
+    t_cls = next(g.objects(target, rdflib.RDF.type), '')
+
     tree_data = {
         'name': splitURI(target)[1],
+        'display': {'label': t_label, 'cls': dict(zip(['ont', 'slug'], splitURI(t_cls)))},
         'type': 'entity',
         'children': get_children(g, target)
     }
