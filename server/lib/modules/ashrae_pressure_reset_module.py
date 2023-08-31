@@ -123,6 +123,7 @@ class ASHRAE_Pressure_Trim_and_Respond(object):
     diagram_query =  """
         CONSTRUCT {
             ?target rdf:type ?t_type ;
+                rdfs:label ?t_label ;
                 brick:hasPoint ?p1, ?p2 .
             
             ?p1 rdf:type brick:Discharge_Air_Static_Pressure_Sensor ;
