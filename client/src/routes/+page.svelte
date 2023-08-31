@@ -9,8 +9,9 @@
     const API_ADDR = "http://localhost:8080"
 
 
-    $: getMatches($selected_module).then(x => $matches = x.data), console.debug("Getting matches...")
-    $: getDiagram($selected_match).then(x => $diagram = x)
+    $: $selected_module && getMatches($selected_module).then(x => $matches = x.data), console.debug("Getting matches...")
+    $: $selected_match && getDiagram($selected_match).then(x => $diagram = x.data), console.debug("Getting diagram...")
+    // $: console.debug("diagram = ", $diagram)
 
     onMount(async ()=>{
         // fetch module list
@@ -64,7 +65,7 @@
                 <ModuleList modules={$modules} />
             </div>
             <div class="flex w-1/6 h-full">
-                <MatchList matches={$matches||[]} />
+                <MatchList matches={$matches || []} />
             </div>
             <div class="flex w-2/3 h-full overflow-hidden">
                 <!-- <TidyTree data={diagram} /> -->
