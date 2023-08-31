@@ -1,6 +1,6 @@
 <script>
 	import ModuleCard from "./ModuleCard.svelte";
-    import { selected_module, selected_match, matches } from "$lib/stores/state";
+    import { selected_module, selected_match, matches, diagram } from "$lib/stores/state";
 
 
     export let modules;
@@ -12,6 +12,8 @@
         selected_match.set(null);
         // reset matches
         matches.set([])
+        // reset diagram
+        diagram.set({})
     }
 </script>
 
