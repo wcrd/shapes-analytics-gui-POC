@@ -7,6 +7,6 @@
 
 </script>
 
-<div class="h-full w-full overflow-scroll w-full">
+<div class="flex flex-col h-full w-full overflow-scroll">
     <SvelteTidyTree {data} />
 </div>

@@ -60,9 +60,23 @@
 
 </script>
 
-<div class="border rounded-md my-1 py-5 flex flex-col items-center">
+<div class="border rounded-md my-1 py-5 flex flex-col items-center w-full h-full">
     
-    <div>
+    <div id="legend" class="flex flex-row gap-x-5 my-5">
+        <div class="flex flex-row gap-x-2 items-center">
+            <span class="block h-3 w-3 rounded-full bg-blue-500"></span>
+            Has Part
+        </div>
+        <div class="flex flex-row gap-x-2 items-center">
+            <span class="block h-3 w-3 rounded-full bg-yellow-500"></span>
+            Feeds
+        </div>
+        <div class="flex flex-row gap-x-2 items-center">
+            <span class="block h-3 w-3 rounded-full bg-green-500"></span>
+            Has Point
+        </div>
+    </div>
+	<div>
 		{#if dataReady}
 		<svg 
 			{width} 
@@ -100,18 +114,5 @@
 		
 	</div>
 
-    <div id="legend" class="flex flex-row gap-x-5 mt-5">
-        <div class="flex flex-row gap-x-2 items-center">
-            <span class="block h-3 w-3 rounded-full bg-blue-500"></span>
-            Has Part
-        </div>
-        <div class="flex flex-row gap-x-2 items-center">
-            <span class="block h-3 w-3 rounded-full bg-yellow-500"></span>
-            Feeds
-        </div>
-        <div class="flex flex-row gap-x-2 items-center">
-            <span class="block h-3 w-3 rounded-full bg-green-500"></span>
-            Has Point
-        </div>
-    </div>
+    
 </div>

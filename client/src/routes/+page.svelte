@@ -67,7 +67,7 @@
             <div class="flex w-1/6 h-full">
                 <MatchList matches={$matches || []} />
             </div>
-            <div class="flex w-2/3 h-full overflow-hidden">
+            <div class="flex w-2/3 h-full">
                 <!-- <TidyTree data={diagram} /> -->
                 <GraphContainer data={$diagram} />
 
