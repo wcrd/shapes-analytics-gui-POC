@@ -15,7 +15,7 @@
 		// Compute the tree height; this approach will allow the height of the
 		// SVG to scale according to the breadth (width) of the tree layout.
 		root  = d3.hierarchy(data);
-		dx = 10;
+		dx = 30;
 		dy = width / (root.height + 1);
 
 		// Create a tree layout.
@@ -102,6 +102,12 @@
 
 					<text dy="0.31em" x={d.children ? -7 : 6} text-anchor={d.children ? 'end' : 'start'} stroke="white">{d.data.name}</text>
 					<text dy="0.31em" x={d.children ? -7 : 6} text-anchor={d.children ? 'end' : 'start'}>{d.data.name}</text>
+					{#if d.data.type!='point'}
+					<text dy="1.5em" x={d.children ? -7 : 6} text-anchor={d.children ? 'end' : 'start'}>({d.data.display.label})</text>
+					<text dy="2.8em" x={d.children ? -7 : 6} text-anchor={d.children ? 'end' : 'start'}>{d.data.display.cls.slug}</text>
+					{:else}
+					<text dy="1.5em" x={d.children ? -7 : 6} text-anchor={d.children ? 'end' : 'start'}>{d.data.display.cls.slug}</text>
+					{/if}
 				</g>
 				{/each}
 			</g>
