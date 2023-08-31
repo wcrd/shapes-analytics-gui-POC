@@ -1,27 +1,27 @@
 <script>
 	import * as d3 from 'd3';
-	import { onMount } from 'svelte';
 
-	let el;
-	let height, x0, x1;
+    export let data = {};
 
-    export let data;
+	let width, tree, root, dx, dy, height, x0, x1;
 
-
+	$: dataReady = Object.keys(data).length
+	
 	// SVG D3 Initialisation
-	const width = 928;
+	$: if(dataReady){
+		
+		width = 928;
 
-	// Compute the tree height; this approach will allow the height of the
-	// SVG to scale according to the breadth (width) of the tree layout.
-	$: root  = d3.hierarchy(data);
-	$: dx = 10;
-	$: dy = width / (root.height + 1);
+		// Compute the tree height; this approach will allow the height of the
+		// SVG to scale according to the breadth (width) of the tree layout.
+		root  = d3.hierarchy(data);
+		dx = 10;
+		dy = width / (root.height + 1);
 
-	// Create a tree layout.
-	$: tree = d3.tree().nodeSize([dx, dy]);
+		// Create a tree layout.
+		tree = d3.tree().nodeSize([dx, dy]);
 
-	$: {
-		console.debug("regenerating tree")
+		// console.debug("regenerating tree")
 		// Sort the tree and apply the layout.
 		root.sort((a, b) => d3.ascending(a.data.type, b.data.type));
 		tree(root);
@@ -39,6 +39,8 @@
 
 		// Compute the adjusted height of the tree.
 		height = x1 - x0 + dx * 2
+
+		// DEBUG
 	}
 	
 
@@ -58,13 +60,28 @@
 
 </script>
 
-<div class="border rounded-md my-1 py-5 flex flex-col items-center">
+<div class="border rounded-md my-1 py-5 flex flex-col items-center w-full h-full">
     
-    <div bind:this={el}>
+    <div id="legend" class="flex flex-row gap-x-5 my-5">
+        <div class="flex flex-row gap-x-2 items-center">
+            <span class="block h-3 w-3 rounded-full bg-blue-500"></span>
+            Has Part
+        </div>
+        <div class="flex flex-row gap-x-2 items-center">
+            <span class="block h-3 w-3 rounded-full bg-yellow-500"></span>
+            Feeds
+        </div>
+        <div class="flex flex-row gap-x-2 items-center">
+            <span class="block h-3 w-3 rounded-full bg-green-500"></span>
+            Has Point
+        </div>
+    </div>
+	<div>
+		{#if dataReady}
 		<svg 
 			{width} 
 			{height} 
-			viewBox={[-dy / 3, x0 - dx, width, height]} 
+			viewBox={[-dy / 3, x0 - dx, width, height].join(" ")} 
 			style='max-width: 100%; height: auto; font: 10px sans-serif;'
 		>
 			<!-- Links first (z-lowest) -->
@@ -88,22 +105,14 @@
 				</g>
 				{/each}
 			</g>
-			
 		</svg>
+		{:else}
+		<div class="border-solid border-blue-500 border rounded-md p-2">
+			<p>Please select a match to view graph segment</p>
+		</div>
+		{/if}
+		
 	</div>
 
-    <div id="legend" class="flex flex-row gap-x-5 mt-5">
-        <div class="flex flex-row gap-x-2 items-center">
-            <span class="block h-3 w-3 rounded-full bg-blue-500"></span>
-            Has Part
-        </div>
-        <div class="flex flex-row gap-x-2 items-center">
-            <span class="block h-3 w-3 rounded-full bg-yellow-500"></span>
-            Feeds
-        </div>
-        <div class="flex flex-row gap-x-2 items-center">
-            <span class="block h-3 w-3 rounded-full bg-green-500"></span>
-            Has Point
-        </div>
-    </div>
+    
 </div>

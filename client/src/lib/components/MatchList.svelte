@@ -1,13 +1,13 @@
 <script>
 	import MatchCard from "./MatchCard.svelte";
-    import { state } from "$lib/stores/state";
+    import { selected_match } from "$lib/stores/state";
 
 
-    export let matches = [];
+    export let matches;
 
     function handleClick(event){
         // console.debug(event.detail)
-        state.update(v => {v.selected_match = event.detail.match; return v})
+        selected_match.set(event.detail.match)
     }
 </script>
 
