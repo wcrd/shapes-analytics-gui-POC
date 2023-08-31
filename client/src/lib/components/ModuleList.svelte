@@ -1,20 +1,17 @@
 <script>
 	import ModuleCard from "./ModuleCard.svelte";
-    import { state } from "$lib/stores/state";
+    import { selected_module, selected_match, matches } from "$lib/stores/state";
 
 
-    export let modules = [];
+    export let modules;
 
     function handleClick(event){
-        state.update(v => {
-            // set module
-            v.selected_module = event.detail.module.uuid;
-            // reset match selection
-            v.selected_match = null;
-            // reset matches
-            v.matches = []
-            return v
-        })
+        // set module
+        selected_module.set(event.detail.module.uuid);
+        // reset match selection
+        selected_match.set(null);
+        // reset matches
+        matches.set([])
     }
 </script>
 

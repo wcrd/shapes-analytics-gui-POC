@@ -2,26 +2,20 @@
     import { onMount } from 'svelte';
 
     import ModuleList from '$lib/components/ModuleList.svelte';
-    import { state } from '$lib/stores/state';
+    import { selected_module, selected_match, modules, matches, diagram } from '$lib/stores/state';
 	import MatchList from '$lib/components/MatchList.svelte';
     import GraphContainer from '$lib/components/GraphContainer.svelte';
 
     const API_ADDR = "http://localhost:8080"
 
-    let matches = []
-    let diagram = {}
 
-    $: module_uuid = $state.selected_module
-    $: getMatches(module_uuid).then(x => matches=x.data)
-    $: selected_match = $state.selected_match
-    $: getDiagram(selected_match).then(x => diagram = x.data)
-
-    // $: diagram
+    $: getMatches($selected_module).then(x => $matches = x.data), console.debug("Getting matches...")
+    $: getDiagram($selected_match).then(x => $diagram = x)
 
     onMount(async ()=>{
         // fetch module list
         const r = await fetch(`${API_ADDR}/get-modules`).then(x => x.json()) 
-        $state.modules = r.data
+        $modules = r.data
     })
 
     async function getMatches(module_uuid){
@@ -67,14 +61,14 @@
         </header>
         <div class="flex flex-row h-full">
             <div class="flex w-1/6 h-full">
-                <ModuleList modules={$state.modules} on:click={e => console.debug("Received")} />
+                <ModuleList modules={$modules} />
             </div>
             <div class="flex w-1/6 h-full">
-                <MatchList {matches} />
+                <MatchList matches={$matches||[]} />
             </div>
             <div class="flex w-2/3 h-full overflow-hidden">
                 <!-- <TidyTree data={diagram} /> -->
-                <GraphContainer bind:data={diagram} />
+                <GraphContainer data={$diagram} />
 
             </div>
         </div>
