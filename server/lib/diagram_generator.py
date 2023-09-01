@@ -40,8 +40,8 @@ def get_children(g:rdflib.Graph, forEnt:rdflib.URIRef):
 def generate_tidy_tree(g:rdflib.Graph, match):
     target = rdflib.URIRef(match['?target'])
     # additional metadata for display
-    t_label = next(g.objects(target, rdflib.RDFS.label), '') 
-    t_cls = next(g.objects(target, rdflib.RDF.type), '')
+    t_label = next(g.objects(target, rdflib.RDFS.label), rdflib.Literal('#')) 
+    t_cls = next(g.objects(target, rdflib.RDF.type), rdflib.Literal('#'))
 
     tree_data = {
         'name': splitURI(target)[1],

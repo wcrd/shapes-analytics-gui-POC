@@ -95,15 +95,95 @@ class ASHRAE_Econ_HL_Shutoff_Diff_Enthalpy(object):
         "SELECT": """
             SELECT ("{name}" as ?option) ?match_id (?this as ?target) ?label ?m_b1_mode ?m_b1 ?m_b2 ?m_b3_mode ?m_b3_1 ?m_b3_2_1 ?m_b3_2_2 ?m_ob_1
             """,
-        "CONSTRUCT": f"""
-            CONSTRUCT {{
-                ?match_id rdf:type rnd:moduleTarget ;
-                    rnd:entityTarget ?this ;
-                    rnd:entityTargetLabel ?label ;
-                    rnd:logic_option rnd:{name} .  
-            }}
-        """
+        "CONSTRUCT": None
     }
+
+    # no paths to resolve here (+|*), all direct points and parts which is nice
+    diagram_query = """
+        CONSTRUCT {
+            ?target rdf:type ?t_type ;
+                rdfs:label ?t_label ;
+                brick:hasPoint ?m_b1, ?m_b2, ?m_b3_1, ?m_b3_2_1, ?m_b3_2_2, ?m_ob_1 ;
+                brick:hasPart ?part_run .
+            
+            ?part_run rdf:type brick:Discharge_Fan ;
+                rdfs:label ?p_label ;
+                brick:hasPoint ?p_m_b1 ;
+                brick:isPartOf ?target .
+            
+            ?m_b1 rdf:type ?point_type1 ;
+                brick:isPointOf ?target .
+            
+            ?p_m_b1 rdf:type ?run_status ;
+                brick:isPointOf ?part_run .
+            
+            ?m_b2 rdf:type ?point_type2 ;
+                brick:isPointOf ?target .
+            
+            ?m_b3_1 rdf:type ?point_type3;
+                brick:isPointOf ?target .
+
+            ?m_b3_2_1 rdf:type brick:Outside_Air_Enthalpy_Sensor ;
+                brick:isPointOf ?target .
+
+            ?m_b3_2_2 rdf:type brick:Return_Air_Enthalpy_Sensor ;
+                brick:isPointOf ?target .
+
+            ?m_ob_1 rdf:type brick:Outside_Air_Lockout_Temperature_Setpoint ;
+                brick:isPointOf ?target .
+
+        }
+        WHERE {
+        
+            # Get Metadata for model fill out
+            ?target rdf:type ?t_type .
+            OPTIONAL { ?target rdfs:label ?t_label }
+
+            # BLOCK 1 - ACTIVE POINT
+            OPTIONAL {
+                ?target brick:hasPoint ?m_b1 .
+                ?m_b1 rdf:type ?point_type1 .
+                VALUES ?point_type1 { brick:On_Off_Status brick:On_Off_Command brick:Enable_Status brick:Enable_Command brick:Operating_Mode_Status switch:Operating_Mode_Command }
+            }
+            OPTIONAL {
+                # Fall back active point; DAF Run
+                ?target brick:hasPart ?part_run .
+                OPTIONAL { ?part_run rdfs:label ?p_label }
+                ?part_run rdf:type brick:Discharge_Fan .
+                ?part_run brick:hasPoint ?p_m_b1 .
+                ?p_m_b1 rdf:type ?run_status .
+                VALUES ?run_status { brick:On_Off_Status brick:On_Off_Command }
+            }
+            
+
+            # BLOCK 2 - ECON MODE
+            ?target brick:hasPoint ?m_b2 .
+            ?m_b2 rdf:type ?point_type2 .
+            VALUES ?point_type2 { switch:Economy_Operating_Mode_Status switch:Economy_Operating_Mode_Enable_Status switch:Economy_Operating_Mode_Enable_Command }
+            
+
+            # BLOCK 3 - OAT OR ENTHALPY
+            {
+                # BLOCK 3_1
+                ?target brick:hasPoint ?m_b3_1 .
+                ?m_b3_1 rdf:type ?point_type3 .
+                VALUES ?point_type3 { brick:Outside_Air_Temperature_Sensor } .
+            } UNION {
+                # BLOCK 3_2
+                ?target brick:hasPoint ?m_b3_2_1 .
+                ?target brick:hasPoint ?m_b3_2_2 .
+                ?m_b3_2_1 rdf:type brick:Outside_Air_Enthalpy_Sensor .
+                ?m_b3_2_2 rdf:type brick:Return_Air_Enthalpy_Sensor .
+            }
+
+            # BLOCK 4 - OPTIONAL
+            OPTIONAL {
+                ?target brick:hasPoint ?m_ob_1 .
+                ?m_ob_1 rdf:type brick:Outside_Air_Lockout_Temperature_Setpoint .
+            }
+
+        }
+    """
 
     params = """
         m_b1: Entity is Active
@@ -270,15 +350,81 @@ class ASHRAE_Econ_HL_Shutoff_Fixed_DB(object):
         "SELECT": """
             SELECT ("{name}" as ?option) ?match_id (?this as ?target) ?label ?m_b1_mode ?m_b1 ?m_b2 ?m_b3 ?m_ob_1
         """,
-        "CONSTRUCT": f"""
-            CONSTRUCT {{
-                ?match_id rdf:type rnd:moduleTarget ;
-                    rnd:entityTarget ?this ;
-                    rnd:entityTargetLabel ?label ;
-                    rnd:logic_option rnd:{name} .  
-            }}
-        """
+        "CONSTRUCT": None
     }
+
+    # no paths to resolve here (+|*), all direct points and parts which is nice
+    diagram_query = """
+        CONSTRUCT {
+            ?target rdf:type ?t_type ;
+                rdfs:label ?t_label ;
+                brick:hasPoint ?m_b1, ?m_b2, ?m_b3, ?m_ob_1 ;
+                brick:hasPart ?part_run .
+            
+            ?part_run rdf:type brick:Discharge_Fan ;
+                rdfs:label ?p_label ;
+                brick:hasPoint ?p_m_b1 ;
+                brick:isPartOf ?target .
+            
+            ?m_b1 rdf:type ?point_type1 ;
+                brick:isPointOf ?target .
+            
+            ?p_m_b1 rdf:type ?run_status ;
+                brick:isPointOf ?part_run .
+            
+            ?m_b2 rdf:type ?point_type2 ;
+                brick:isPointOf ?target .
+            
+            ?m_b3 rdf:type ?point_type3;
+                brick:isPointOf ?target .
+
+            ?m_ob_1 rdf:type brick:Outside_Air_Lockout_Temperature_Setpoint ;
+                brick:isPointOf ?target .
+
+        }
+        WHERE {
+        
+            # Get Metadata for model fill out
+            ?target rdf:type ?t_type .
+            OPTIONAL { ?target rdfs:label ?t_label }
+
+            # BLOCK 1 - ACTIVE POINT
+            OPTIONAL {
+                ?target brick:hasPoint ?m_b1 .
+                ?m_b1 rdf:type ?point_type1 .
+                VALUES ?point_type1 { brick:On_Off_Status brick:On_Off_Command brick:Enable_Status brick:Enable_Command brick:Operating_Mode_Status switch:Operating_Mode_Command }
+            }
+            OPTIONAL {
+                # Fall back active point; DAF Run
+                ?target brick:hasPart ?part_run .
+                OPTIONAL { ?part_run rdfs:label ?p_label }
+                ?part_run rdf:type brick:Discharge_Fan .
+                ?part_run brick:hasPoint ?p_m_b1 .
+                ?p_m_b1 rdf:type ?run_status .
+                VALUES ?run_status { brick:On_Off_Status brick:On_Off_Command }
+            }
+            
+
+            # BLOCK 2 - ECON MODE
+            ?target brick:hasPoint ?m_b2 .
+            ?m_b2 rdf:type ?point_type2 .
+            VALUES ?point_type2 { switch:Economy_Operating_Mode_Status switch:Economy_Operating_Mode_Enable_Status switch:Economy_Operating_Mode_Enable_Command }
+            
+
+            # BLOCK 3 - OAT
+            ?target brick:hasPoint ?m_b3 .
+            ?m_b3 rdf:type ?point_type3 .
+            VALUES ?point_type3 { brick:Outside_Air_Temperature_Sensor } .
+
+
+            # BLOCK 4 - OPTIONAL
+            OPTIONAL {
+                ?target brick:hasPoint ?m_ob_1 .
+                ?m_ob_1 rdf:type brick:Outside_Air_Lockout_Temperature_Setpoint .
+            }
+
+        }
+    """
 
     params = """
         m_b1: Entity is Active
@@ -400,15 +546,79 @@ class ASHRAE_Econ_HL_Shutoff_Diff_DB(object):
         "SELECT": """
             SELECT ("{name}" as ?option) ?match_id (?this as ?target) ?label ?m_b1_mode ?m_b1 ?m_b2 ?m_b3 ?m_b4            
             """,
-        "CONSTRUCT": f"""
-            CONSTRUCT {{
-                ?match_id rdf:type rnd:moduleTarget ;
-                    rnd:entityTarget ?this ;
-                    rnd:entityTargetLabel ?label ;
-                    rnd:logic_option rnd:{name} .  
-            }}
-        """
+        "CONSTRUCT": None
     }
+
+    # no paths to resolve here (+|*), all direct points and parts which is nice
+    diagram_query = """
+        CONSTRUCT {
+            ?target rdf:type ?t_type ;
+                rdfs:label ?t_label ;
+                brick:hasPoint ?m_b1, ?m_b2, ?m_b3, ?m_b4 ;
+                brick:hasPart ?part_run .
+            
+            ?part_run rdf:type brick:Discharge_Fan ;
+                rdfs:label ?p_label ;
+                brick:hasPoint ?p_m_b1 ;
+                brick:isPartOf ?target .
+            
+            ?m_b1 rdf:type ?point_type1 ;
+                brick:isPointOf ?target .
+            
+            ?p_m_b1 rdf:type ?run_status ;
+                brick:isPointOf ?part_run .
+            
+            ?m_b2 rdf:type ?point_type2 ;
+                brick:isPointOf ?target .
+            
+            ?m_b3 rdf:type ?point_type3;
+                brick:isPointOf ?target .
+
+            ?m_b4 rdf:type ?point_type4;
+                brick:isPointOf ?target .
+
+        }
+        WHERE {
+        
+            # Get Metadata for model fill out
+            ?target rdf:type ?t_type .
+            OPTIONAL { ?target rdfs:label ?t_label }
+
+            # BLOCK 1 - ACTIVE POINT
+            OPTIONAL {
+                ?target brick:hasPoint ?m_b1 .
+                ?m_b1 rdf:type ?point_type1 .
+                VALUES ?point_type1 { brick:On_Off_Status brick:On_Off_Command brick:Enable_Status brick:Enable_Command brick:Operating_Mode_Status switch:Operating_Mode_Command }
+            }
+            OPTIONAL {
+                # Fall back active point; DAF Run
+                ?target brick:hasPart ?part_run .
+                OPTIONAL { ?part_run rdfs:label ?p_label }
+                ?part_run rdf:type brick:Discharge_Fan .
+                ?part_run brick:hasPoint ?p_m_b1 .
+                ?p_m_b1 rdf:type ?run_status .
+                VALUES ?run_status { brick:On_Off_Status brick:On_Off_Command }
+            }
+            
+
+            # BLOCK 2 - ECON MODE
+            ?target brick:hasPoint ?m_b2 .
+            ?m_b2 rdf:type ?point_type2 .
+            VALUES ?point_type2 { switch:Economy_Operating_Mode_Status switch:Economy_Operating_Mode_Enable_Status switch:Economy_Operating_Mode_Enable_Command }
+            
+
+            # BLOCK 3 - OAT
+            ?target brick:hasPoint ?m_b3 .
+            ?m_b3 rdf:type ?point_type3 .
+            VALUES ?point_type3 { brick:Outside_Air_Temperature_Sensor } .
+
+
+            # BLOCK 4 - RAT
+            ?target brick:hasPoint ?m_b4 .
+            ?m_b4 rdf:type ?point_type4 .
+            VALUES ?point_type4 { brick:Return_Air_Temperature_Sensor } .
+        }
+    """
 
     params = """
         m_b1: Entity is Active
@@ -540,15 +750,88 @@ class ASHRAE_Econ_HL_Shutoff_Fixed_Enthalpy(object):
         "SELECT": f"""
             SELECT ("{name}" as ?option) ?match_id (?this as ?target) ?label ?m_b1_mode ?m_b1 ?m_b2 ?m_b3 ?m_b4 ?m_ob_1            
             """,
-        "CONSTRUCT": f"""
-            CONSTRUCT {{
-                ?match_id rdf:type rnd:moduleTarget ;
-                    rnd:entityTarget ?this ;
-                    rnd:entityTargetLabel ?label ;
-                    rnd:logic_option rnd:{name} .  
-            }}
-        """
+        "CONSTRUCT": None
     }
+
+    # no paths to resolve here (+|*), all direct points and parts which is nice
+    diagram_query = """
+        CONSTRUCT {
+            ?target rdf:type ?t_type ;
+                rdfs:label ?t_label ;
+                brick:hasPoint ?m_b1, ?m_b2, ?m_b3, ?m_b4, ?m_ob_1 ;
+                brick:hasPart ?part_run .
+            
+            ?part_run rdf:type brick:Discharge_Fan ;
+                rdfs:label ?p_label ;
+                brick:hasPoint ?p_m_b1 ;
+                brick:isPartOf ?target .
+            
+            ?m_b1 rdf:type ?point_type1 ;
+                brick:isPointOf ?target .
+            
+            ?p_m_b1 rdf:type ?run_status ;
+                brick:isPointOf ?part_run .
+            
+            ?m_b2 rdf:type ?point_type2 ;
+                brick:isPointOf ?target .
+            
+            ?m_b3 rdf:type ?point_type3;
+                brick:isPointOf ?target .
+
+            ?m_b4 rdf:type ?point_type4;
+                brick:isPointOf ?target .
+            
+            ?m_ob_1 rdf:type brick:Outside_Air_Lockout_Temperature_Setpoint ;
+                brick:isPointOf ?target .
+
+        }
+        WHERE {
+        
+            # Get Metadata for model fill out
+            ?target rdf:type ?t_type .
+            OPTIONAL { ?target rdfs:label ?t_label }
+
+            # BLOCK 1 - ACTIVE POINT
+            OPTIONAL {
+                ?target brick:hasPoint ?m_b1 .
+                ?m_b1 rdf:type ?point_type1 .
+                VALUES ?point_type1 { brick:On_Off_Status brick:On_Off_Command brick:Enable_Status brick:Enable_Command brick:Operating_Mode_Status switch:Operating_Mode_Command }
+            }
+            OPTIONAL {
+                # Fall back active point; DAF Run
+                ?target brick:hasPart ?part_run .
+                OPTIONAL { ?part_run rdfs:label ?p_label }
+                ?part_run rdf:type brick:Discharge_Fan .
+                ?part_run brick:hasPoint ?p_m_b1 .
+                ?p_m_b1 rdf:type ?run_status .
+                VALUES ?run_status { brick:On_Off_Status brick:On_Off_Command }
+            }
+            
+
+            # BLOCK 2 - ECON MODE
+            ?target brick:hasPoint ?m_b2 .
+            ?m_b2 rdf:type ?point_type2 .
+            VALUES ?point_type2 { switch:Economy_Operating_Mode_Status switch:Economy_Operating_Mode_Enable_Status switch:Economy_Operating_Mode_Enable_Command }
+            
+
+            # BLOCK 3 - OAT
+            ?target brick:hasPoint ?m_b3 .
+            ?m_b3 rdf:type ?point_type3 .
+            VALUES ?point_type3 { brick:Outside_Air_Temperature_Sensor } .
+
+
+            # BLOCK 4 - OA Enthalpy
+            ?target brick:hasPoint ?m_b4 .
+            ?m_b4 rdf:type ?point_type4 .
+            VALUES ?point_type4 { brick:Outside_Air_Enthaply_Sensor } .
+
+            # BLOCK 5 - OPTIONAL
+            OPTIONAL {
+                ?target brick:hasPoint ?m_ob_1 .
+                ?m_ob_1 rdf:type brick:Outside_Air_Lockout_Temperature_Setpoint .
+            }
+        }
+    """
 
     params = """
         m_b1: Entity is Active
@@ -640,6 +923,20 @@ class MODULE_Air_Economizer_High_Limit_Shutoff_Exceeding_ASHRAE_Standards(object
             df_output.fillna(0, inplace=True) # some NaNs are being returned; need to address this earlier.
         
         return (res_output, df_output)
+
+    @classmethod
+    def get_match_diagram_graph(self, dataset:rdflib.Graph, match_record):
+        """
+        match_record = { ... , ?target: str(URIRef), _match_id: str(uuid), _logic: str(uuid), _module: str(uuid) }
+        """
+
+        # lookup logic option (should only be 1, hence we take first element of list)
+        logic_option = next( iter(filter(lambda x: str(x.uuid) == match_record['_logic'], self.logic_modules)), None)
+        # run diagram graph creator
+        diagram_g = dataset.query(logic_option.diagram_query, initBindings={'target': rdflib.URIRef(match_record['?target'])})
+        # process graph in 
+
+        return diagram_g
     
 
 MODULE = MODULE_Air_Economizer_High_Limit_Shutoff_Exceeding_ASHRAE_Standards
