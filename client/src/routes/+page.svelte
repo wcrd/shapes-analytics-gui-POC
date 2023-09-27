@@ -2,9 +2,10 @@
     import { onMount } from 'svelte';
 
     import ModuleList from '$lib/components/ModuleList.svelte';
-    import { selected_module, selected_match, modules, matches, diagram } from '$lib/stores/state';
+    import { selected_module, selected_target, selected_match, modules, targets, matches, filteredMatches, diagram } from '$lib/stores/state';
 	import MatchList from '$lib/components/MatchList.svelte';
     import GraphContainer from '$lib/components/GraphContainer.svelte';
+    import TargetList from '$lib/components/TargetList.svelte';
 
     const API_ADDR = "http://localhost:8080"
 
@@ -65,9 +66,12 @@
                 <ModuleList modules={$modules} />
             </div>
             <div class="flex w-1/6 h-full">
-                <MatchList matches={$matches || []} />
+                <TargetList targets={$targets || []}/>
             </div>
-            <div class="flex w-2/3 h-full">
+            <div class="flex w-1/6 h-full">
+                <MatchList matches={$filteredMatches || []} />
+            </div>
+            <div class="flex w-1/2 h-full">
                 <!-- <TidyTree data={diagram} /> -->
                 <GraphContainer data={$diagram} />
 
