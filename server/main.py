@@ -106,8 +106,8 @@ class Server():
         
         (raw_match, df_match) = m.match(self.ds)
 
-        # let sort the df by target
-        df_match.sort_values(by="?target", inplace=True)
+        # let sort the df by target, then by option
+        df_match.sort_values(by=["?target", "?option"], inplace=True)
 
         self.db['matches'][module_uuid] = json.loads(json.dumps(df_match.to_dict(orient='records'), cls=MatchJSONEncoder))
 
