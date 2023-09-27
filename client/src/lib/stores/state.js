@@ -1,4 +1,4 @@
-import { writable } from "svelte/store";
+import { derived, writable } from "svelte/store";
 
 const API_ADDR = "http://localhost:8080"
 
@@ -28,7 +28,10 @@ const API_ADDR = "http://localhost:8080"
 // export const state = createStateStore() 
 
 export const selected_module = writable(null);
+export const selected_target = writable(null);
 export const selected_match = writable(null);
 export const modules = writable([]);
 export const matches = writable([]);
+export const filteredMatches = derived([matches, selected_target], ([$matches, $selected_target]) => $matches.filter(r => r['?target'] == $selected_target))
+export const targets = derived(matches, ($matches) => new Set($matches.map((match) => match['?target'])))
 export const diagram = writable({})
