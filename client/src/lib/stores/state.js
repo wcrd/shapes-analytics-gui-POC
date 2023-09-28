@@ -32,7 +32,7 @@ export const selected_target = writable(null);
 export const selected_match = writable(null);
 export const modules = writable([]);
 export const matches = writable([]);
-export const filteredMatches = derived([matches, selected_target], ([$matches, $selected_target]) => $matches.filter(r => r['?target'] == $selected_target))
+export const filteredMatches = derived([matches, selected_target], ([$matches, $selected_target]) => { return $matches.length==0 ? [] : $matches.filter(r => r['?target'] == $selected_target)})
 // export const targets = derived(matches, ($matches) => new Set($matches.map((match) => match['?target'])))
 export const targets = writable([])
 export const diagram = writable({})

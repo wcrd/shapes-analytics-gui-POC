@@ -1,6 +1,6 @@
 <script>
 	import ModuleCard from "./ModuleCard.svelte";
-    import { selected_module, selected_match, matches, diagram } from "$lib/stores/state";
+    import { selected_module, selected_target, selected_match, matches, diagram } from "$lib/stores/state";
 
 
     export let modules;
@@ -8,6 +8,7 @@
     function handleClick(event){
         // set module
         selected_module.set(event.detail.module.uuid);
+        selected_target.set(null)
         // reset match selection
         selected_match.set(null);
         // reset matches
