@@ -16,6 +16,7 @@ class Server():
         self.db = {
             'modules': { str(getattr(LogicModules, m).MODULE.uuid): getattr(LogicModules, m).MODULE for m in LogicModules.__all__ },
             'matches': {},
+            'targets': {}, # this is a derived value from matches. Useful for front end vis.
             'diagrams': {}, # { module_uuid: { logic_uuid: { match_uuid: diagram_data } } } 
         }
         
@@ -101,18 +102,24 @@ class Server():
         if not force_rematch:
             # check if we already have matches!
             matches = self.db['matches'].get(module_uuid)
-            if matches: 
-                return data( matches, meta={"from_cache": True})
-        
-        (raw_match, df_match) = m.match(self.ds)
+            # check if we already have target list
+            targets = self.db['targets'].get(module_uuid)
 
+            if matches and targets: 
+                return data( matches=matches, targets=targets, meta={"from_cache": True})
+        
+        # else run matching and target functions
+        (raw_match, df_match) = m.match(self.ds)
         # let sort the df by target, then by option
         df_match.sort_values(by=["?target", "?option"], inplace=True)
 
         self.db['matches'][module_uuid] = json.loads(json.dumps(df_match.to_dict(orient='records'), cls=MatchJSONEncoder))
 
+        # get additional target information
+        targets = self.get_match_targets(df_match)
+        self.db['targets'][module_uuid] = json.loads(json.dumps(targets))
 
-        return data( self.db['matches'][module_uuid] , meta={"from_cache": False} )
+        return data( matches=self.db['matches'][module_uuid], targets=self.db['targets'][module_uuid], meta={"from_cache": False} )
 
     def get_match_diagram(self):
         # Get required values from request body
@@ -168,7 +175,25 @@ class Server():
         # load building model
         self.ds.add_graph(self.g_ns['building']).parse(file=modelfile, format="turtle")
 
+    def get_match_targets(self, matches):
+        """Given a match result set, extract the unique targets and get some additional info from the graph"""
 
+        if matches.empty: return []
+
+        # get unique match targets
+        targets = matches['?target'].unique()
+
+        # get some more data from the graph:
+        target_data = []
+        for target in targets:
+            target_data.append({
+                "target": target.toPython(),
+                "label": next(self.ds.objects(target, rdflib.RDFS.label), rdflib.Literal('#')).toPython(),
+                "cls": dict(zip(['ont', 'slug'], next(self.ds.objects(target, rdflib.RDF.type), rdflib.Literal("#")).toPython().split('#'))) 
+            })
+
+
+        return sorted(target_data, key=lambda x: x['label'])
 
 
 
