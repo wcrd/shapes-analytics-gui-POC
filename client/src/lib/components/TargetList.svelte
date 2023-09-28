@@ -1,6 +1,6 @@
 <script>
 	import TargetCard from "./TargetCard.svelte";
-    import { selected_target } from "$lib/stores/state";
+    import { selected_target, selected_match, diagram } from "$lib/stores/state";
 
 
     export let targets;
@@ -8,6 +8,11 @@
     function handleClick(event){
         // console.debug(event.detail)
         selected_target.set(event.detail.target)
+        // clear downstream
+        // reset matches
+        selected_match.set(null)
+        // reset diagram
+        diagram.set({})
     }
 </script>
 

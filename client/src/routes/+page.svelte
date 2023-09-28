@@ -10,7 +10,7 @@
     const API_ADDR = "http://localhost:8080"
 
 
-    $: $selected_module && getMatches($selected_module).then(x => $matches = x.data), console.debug("Getting matches...")
+    $: $selected_module && getMatches($selected_module).then(x => { $matches = x.data.matches; $targets = x.data.targets }), console.debug("Getting matches...")
     $: $selected_match && getDiagram($selected_match).then(x => $diagram = x.data), console.debug("Getting diagram...")
     // $: console.debug("diagram = ", $diagram)
 
@@ -59,7 +59,17 @@
 <div class="flex flex-col h-full w-screen bg-slate-100">
     <div class="flex flex-col h-full">
         <header class="h-8 border-solid border-b border-slate-400">
-            Header Bar
+            <div class="flex flex-row text-sm items-center h-full px-2">
+                {#if $selected_module}
+                <p>{`${$selected_module}`}</p>
+                    {#if $selected_target}
+                    <p><span class="px-2 font-bold">></span>{`${$selected_target}`}</p>
+                    {#if $selected_match}
+                        <p><span class="px-2 font-bold">></span>{`${$selected_match._logic_name}`}</p>
+                    {/if}
+                    {/if}
+                {/if}
+            </div>
         </header>
         <div class="flex flex-row h-full">
             <div class="flex w-1/6 h-full">

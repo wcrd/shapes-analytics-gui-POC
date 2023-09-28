@@ -11,7 +11,7 @@
 
 </script>
 
-<div class="p-1 border-2 border-solid rounded-lg border-emerald-500 hover:bg-blue-200 cursor-pointer bg-white" on:click={handleClick} >
+<div class="p-1 border-2 border-solid rounded-lg border-purple-800 hover:bg-blue-200 cursor-pointer bg-white" on:click={handleClick} >
     <h6 class="text-sm font-semibold italic">Target:</h6>
     <p class="text-xs">{match['?target']}</p>
     <hr class="my-1">
