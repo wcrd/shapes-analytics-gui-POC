@@ -345,8 +345,8 @@ class ASHRAE_Pressure_Trim_and_Respond_ControlModule(object):
         _ashrae_params = SimpleNamespace(**{**vars(self._ashrae_parameters), **ashrae_params})
 
         # INITIALISE calc variables
-        var_I, var_R, var_S, rogue_zones = None, None, None, None
-        _response_delta = None
+        var_I, var_R, var_S, rogue_zones = 0, 0, 0, 0
+        _response_delta, _net_delta = 0, 0
 
         # 1. Check target entity is active & update state
         # I don't have active points yet; skip for now.
@@ -383,13 +383,14 @@ class ASHRAE_Pressure_Trim_and_Respond_ControlModule(object):
 
             # 2. Count Rogue Zones
             rogue_zones = 0 # implement this logic later; for now I am just going to count NaN reported positions as rogue zones!
-            rogue_zones = sum(math.isnan(x) for x in row[m_b3])
+            rogue_zones = [pd.isna(row[t_u]) for t_u in m_b3].count(True)
             var_I = rogue_zones + _ashrae_params.I
 
             # 3. Count pressure requests and pressure satisfied dampers
             var_R = 0 # R (pressure request count)
             var_S = 0 # S (pressure satisfied count)
             for tu_pos in m_b3:
+                if pd.isna(row[tu_pos]): continue
                 # get importance multiplier from entity metadata
                 # for now we don't have so use 1 for all
                 var_IM = 1
@@ -404,7 +405,8 @@ class ASHRAE_Pressure_Trim_and_Respond_ControlModule(object):
             # 5. Calculate Adjustment
             # Net = Trim + Response -> range [spmin, spmax]
             _response_delta = min(_ashrae_params.spres * max(var_R - var_I, 0), _ashrae_params.spres_max)
-            _command_raw = row[m_b2] + _response_delta + _ashrae_params.sptrim
+            _net_delta = _response_delta + _ashrae_params.sptrim
+            _command_raw = row[m_b2] + _net_delta
             self.state.control_command = max(min(_command_raw, _ashrae_params.spmax), _ashrae_params.spmin)
 
         ## RETURN
@@ -418,6 +420,7 @@ class ASHRAE_Pressure_Trim_and_Respond_ControlModule(object):
             downstream_dampers['var_I'] = var_I
             downstream_dampers['entity_active'] = entity_active
             downstream_dampers['_response_delta'] = _response_delta
+            downstream_dampers['_net_delta'] = _net_delta
             downstream_dampers['control_command'] = self.state.control_command
             downstream_dampers['DAPSP'] = row[m_b2]
             downstream_dampers['DAP'] = row[m_b1]

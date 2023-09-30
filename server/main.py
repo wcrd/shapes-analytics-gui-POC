@@ -13,13 +13,7 @@ class Server():
     def __init__(self):
         self.app = Flask(__name__, static_url_path="/static")
         CORS(self.app)
-        self.db = {
-            'modules': { str(getattr(LogicModules, m).MODULE.uuid): getattr(LogicModules, m).MODULE for m in LogicModules.__all__ },
-            'matches': {},
-            'targets': {}, # this is a derived value from matches. Useful for front end vis.
-            'diagrams': {}, # { module_uuid: { logic_uuid: { match_uuid: diagram_data } } } 
-        }
-        
+        self.createDB()    
         
         print("Loading graph frame with Brick and Switch ontologies.")
         (self.ds, self.g_ns) = self.init_graph_model() 
@@ -32,6 +26,14 @@ class Server():
         self.app.route("/get-modules", methods=['GET'])(self.get_modules)
         self.app.route("/get-module-matches", methods=['POST'])(self.get_module_matches)
         self.app.route("/get-match-diagram", methods=['POST'])(self.get_match_diagram)
+    
+    def createDB(self):
+        self.db = {
+            'modules': { str(getattr(LogicModules, m).MODULE.uuid): getattr(LogicModules, m).MODULE for m in LogicModules.__all__ },
+            'matches': {},
+            'targets': {}, # this is a derived value from matches. Useful for front end vis.
+            'diagrams': {}, # { module_uuid: { logic_uuid: { match_uuid: diagram_data } } } 
+        }
     
     #   FLASK STUFF
     #
@@ -63,6 +65,8 @@ class Server():
                 # try and process as a model
                 try:
                     res = self.parse_model_file(file)
+                    # reset db
+                    self.createDB()
                     # return { "msg_type": "success", "msg": "File successfully loaded into graph", "meta": { "filename": file.filename, "triples": len(self.ds.graph(self.g_ns['building'])) }}
                     return msg(MsgType.SUCCESS, "File successfully loaded into graph", filename=file.filename, triples=len(self.ds.graph(self.g_ns['building'])) )
 
